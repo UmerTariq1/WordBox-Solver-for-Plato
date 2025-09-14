@@ -2,20 +2,20 @@
 
 A high-performance word-finding game solver available in both Python and interactive web versions. Find all valid words in a 5×5 grid following strict adjacency rules with blazing-fast performance and beautiful visualizations.
 
-
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Play%20Now-blue?style=for-the-badge)](https://umertariq1.github.io/wordbox/)
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [🌐 Web Application](#web-application)
-- [🐍 Python Version](#python-version)
-- [Game Rules](#game-rules)
-- [Technical Implementation](#technical-implementation)
-- [Performance Optimizations](#performance-optimizations)
-- [Usage](#usage)
-- [File Structure](#file-structure)
-- [Requirements](#requirements)
-- [Examples](#examples)
+- [Overview](#-overview)
+- [Web Application](#-web-application)
+- [Python Version](#-python-version)
+- [Game Rules](#-game-rules)
+- [Technical Implementation](#-technical-implementation)
+- [Performance Optimizations](#-performance-optimizations)
+- [Usage](#-usage)
+- [File Structure](#-file-structure)
+- [Requirements](#-requirements)
+- [Examples](#-examples)
 
 ## 🎯 Overview
 
@@ -51,7 +51,7 @@ The interactive web version provides a modern, user-friendly interface for solvi
 
 ### 🚀 Quick Start (Web)
 
-1. **Open `index.html`** in any modern web browser
+1. **Visit [Live Demo](https://umertariq1.github.io/wordbox/)** or open `index.html` in any modern web browser
 2. **Enter your 5×5 grid** in the left panel (or use the pre-filled example)
 3. **Click Calculate** to find all words instantly
 4. **Click any word** in the results to see its path visualization
@@ -304,7 +304,7 @@ Word search completed in 0.002s
 
 ### 🌐 Web Application Usage
 
-**Simply open `index.html` in any modern web browser!**
+**Simply visit [Live Demo](https://umertariq1.github.io/wordbox/) or open `index.html` in any modern web browser!**
 
 No installation required - works offline and on all devices.
 
