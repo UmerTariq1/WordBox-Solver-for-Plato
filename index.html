@@ -597,10 +597,48 @@ O Y H C H</textarea>
                 console.log('Loading comprehensive dictionary...');
                 const startTime = performance.now();
 
-                // Massive comprehensive word list to match Python performance
+                // Enhanced word list with focus on longer words and game-friendly terms
                 const words = [
-                    // ALL the words from Python's fallback + many more
-                    'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HER', 'WAS', 'ONE',
+                    // Common game-friendly longer words (6+ letters)
+                    'ABSTRACT', 'ACADEMIC', 'ACHIEVE', 'ACQUIRE', 'ADVANCE', 'ADVENTURE', 'ANALYZE', 'APPROACH',
+                    'ARRANGE', 'ARTISTIC', 'ASSEMBLE', 'BALANCE', 'BEAUTIFUL', 'BECOMING', 'BELIEVE', 'BENEATH',
+                    'BENEFIT', 'BETWEEN', 'BEYOND', 'BLOSSOM', 'BREATHE', 'BRIGHT', 'BRILLIANT', 'CAPTURE',
+                    'CAREFUL', 'CELEBRATE', 'CENTRAL', 'CENTURY', 'CERTAIN', 'CHAMBER', 'CHANNEL', 'CHAPTER',
+                    'CHARGE', 'CIRCLE', 'CLIMB', 'CLOSE', 'COMBINE', 'COMFORT', 'COMMAND', 'COMMENT',
+                    'COMPLETE', 'COMPOSE', 'CONCEPT', 'CONCERN', 'CONNECT', 'CONSIDER', 'CONTAIN', 'CONTINUE',
+                    'CONTROL', 'CONVERT', 'CREATE', 'CRYSTAL', 'CULTURE', 'CURRENT', 'DECLARE', 'DECLINE',
+                    'DECREASE', 'DEFINE', 'DELIVER', 'DESCRIBE', 'DESERT', 'DESIGN', 'DESIRE', 'DETAIL',
+                    'DETECT', 'DEVELOP', 'DEVISE', 'DIFFER', 'DIRECT', 'DISCUSS', 'DISPLAY', 'DISTANT',
+                    'DIVIDE', 'DIVINE', 'DOUBLE', 'DYNAMIC', 'EARNEST', 'EDUCATE', 'EFFECT', 'EFFICIENT',
+                    'ELASTIC', 'ELEGANT', 'ELEMENT', 'ELEVATE', 'EMERGE', 'EMOTION', 'EMPLOY', 'ENABLE',
+                    'ENDLESS', 'ENDURE', 'ENERGY', 'ENFORCE', 'ENGAGE', 'ENHANCE', 'ESSENCE', 'ESTABLISH',
+                    'ESTIMATE', 'ETERNAL', 'EVALUATE', 'EVENING', 'EVIDENT', 'EVOLVE', 'EXAMINE', 'EXCEED',
+                    'EXCELLENT', 'EXCHANGE', 'EXCITE', 'EXCLUDE', 'EXECUTE', 'EXERCISE', 'EXHAUST', 'EXIST',
+                    'EXPAND', 'EXPECT', 'EXPLAIN', 'EXPLORE', 'EXPRESS', 'EXTEND', 'EXTRACT', 'EXTREME',
+                    
+                    // Verbs and action words
+                    'ABSORB', 'ACCEPT', 'ADAPT', 'ADJUST', 'ADMIRE', 'ADVISE', 'AFFORD', 'AGREE', 'ALERT',
+                    'ALTER', 'AMUSE', 'ARISE', 'AVOID', 'AWAKE', 'BEGIN', 'BLEND', 'BLOCK', 'BOOST', 'BREAK',
+                    'BUILD', 'CARRY', 'CATCH', 'CAUSE', 'CEASE', 'CHANGE', 'CHOOSE', 'CLAIM', 'CLEAN',
+                    'CLEAR', 'CLIMB', 'CLOSE', 'COUNT', 'COVER', 'CROSS', 'DANCE', 'DELAY', 'DENY', 'DEPEND',
+                    'DRIFT', 'DRIVE', 'ENJOY', 'ENTER', 'EQUAL', 'ERASE', 'ESCAPE', 'EXCEL', 'EXIST', 'FADE',
+                    'FAIL', 'FEAR', 'FEEL', 'FIGHT', 'FLOAT', 'FLOW', 'FOCUS', 'FORCE', 'FORM', 'GAIN',
+                    'GIVE', 'GLOW', 'GROW', 'GUARD', 'GUESS', 'GUIDE', 'HELP', 'HIDE', 'HOLD', 'HOPE',
+                    'HUNT', 'KEEP', 'KNOW', 'LAST', 'LEAD', 'LEAN', 'LEAP', 'LEARN', 'LEAVE', 'LEND',
+                    
+                    // Descriptive adjectives
+                    'ABLE', 'ACID', 'ACUTE', 'ALIVE', 'ALONE', 'ANGRY', 'AWARE', 'BLIND', 'BRAVE', 'BRIEF',
+                    'BROAD', 'BUSY', 'CALM', 'CHEAP', 'CHIEF', 'CLEAN', 'CLEAR', 'CLOSE', 'COLD', 'COOL',
+                    'CRAZY', 'DAILY', 'DARK', 'DEAD', 'DEAF', 'DEAR', 'DEEP', 'DUAL', 'DULL', 'EAGER',
+                    'EARLY', 'EASY', 'EVIL', 'FAIR', 'FALSE', 'FAST', 'FINE', 'FIRM', 'FLAT', 'FREE',
+                    'FRESH', 'FULL', 'GLAD', 'GOOD', 'GRAY', 'GREAT', 'GREEN', 'GROSS', 'HAPPY', 'HARD',
+                    'HARSH', 'HIGH', 'HOLY', 'HUGE', 'INNER', 'JOINT', 'KIND', 'LARGE', 'LATE', 'LAZY',
+                    'LIGHT', 'LIKE', 'LIVE', 'LONE', 'LONG', 'LOUD', 'MAIN', 'MALE', 'MEAN', 'MERE',
+                    
+                    // Common short words (3-5 letters) for game playability
+                    'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'ANY', 'CAN', 'DAY', 'EAT',
+                    'FAR', 'GET', 'HAS', 'HOW', 'LAY', 'NOW', 'OLD', 'PUT', 'SAY', 'SEE', 'TOO', 'USE',
+                    'WHO', 'WHY', 'WAY', 'YES',
                     'OUR', 'HAD', 'DAY', 'GET', 'USE', 'MAN', 'NEW', 'NOW', 'WAY', 'MAY', 'SAY', 'SHE',
                     'TWO', 'HOW', 'ITS', 'WHO', 'OIL', 'SIT', 'SET', 'RUN', 'EAT', 'FAR', 'SEA', 'EYE',
                     'YET', 'ASK', 'TRY', 'TEA', 'KEY', 'YES', 'LET', 'HIS', 'HAS', 'HIT', 'HOT', 'PUT',

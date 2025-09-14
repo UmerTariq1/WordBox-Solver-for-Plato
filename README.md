@@ -2,6 +2,8 @@
 
 A high-performance word-finding game solver available in both Python and interactive web versions. Find all valid words in a 5×5 grid following strict adjacency rules with blazing-fast performance and beautiful visualizations.
 
+
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
