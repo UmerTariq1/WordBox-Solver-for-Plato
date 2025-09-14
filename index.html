@@ -487,7 +487,10 @@ O Y H C H</textarea>
                     Multi-letter tiles supported (e.g., Qu, Th)
                 </div>
                 
-                <button id="calculateBtn" class="calculate-btn">Calculate</button>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <button id="calculateBtn" class="calculate-btn">Calculate</button>
+                    <button id="clearBtn" class="calculate-btn" style="background: #718096;">Clear</button>
+                </div>
                 
                 <!-- Grid Visualization -->
                 <div id="gridVisualization" class="grid-display" style="display: none;">
@@ -968,11 +971,25 @@ O Y H C H</textarea>
 
             initializeEventListeners() {
                 const calculateBtn = document.getElementById('calculateBtn');
+                const clearBtn = document.getElementById('clearBtn');
                 const gridInput = document.getElementById('gridInput');
                 const modal = document.getElementById('wordModal');
                 const closeBtn = modal.querySelector('.close');
 
+                // Calculate button
                 calculateBtn.addEventListener('click', () => this.calculate());
+
+                // Clear button
+                clearBtn.addEventListener('click', () => {
+                    gridInput.value = '';
+                    document.getElementById('gridVisualization').style.display = 'none';
+                    document.getElementById('resultsContainer').innerHTML = `
+                        <div class="results-header">
+                            <h2 class="results-title">Found Words</h2>
+                            <div class="results-stats">Enter a grid and click Calculate to find words</div>
+                        </div>
+                    `;
+                });
                 
                 // Allow Enter key to trigger calculation when focused on input
                 gridInput.addEventListener('keydown', (e) => {
