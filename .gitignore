@@ -1,0 +1,6 @@
+# .venv folder
+.venv/
+*.pyc
+*.png
+*.jpg
+*.jpeg

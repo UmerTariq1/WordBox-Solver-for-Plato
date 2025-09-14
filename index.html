@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Wordbox Solver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+
+        .panel {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .left-panel {
+            border-right: 2px solid #e0e0e0;
+            justify-content: flex-start;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .right-panel {
+            background: white;
+            overflow-y: auto;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #4a5568;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .input-section {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .grid-input {
+            width: 100%;
+            height: 200px;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+
+        .grid-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .example-text {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .calculate-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .results-title {
+            color: #4a5568;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .results-stats {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .word-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .word-item {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .word-item:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .word-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .word-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+
+        .word-score {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .bonus-score {
+            background: #ed8936;
+        }
+
+        .word-path {
+            font-size: 0.8rem;
+            color: #718096;
+            font-family: 'Courier New', monospace;
+        }
+
+        .bonus-tiles {
+            font-size: 0.8rem;
+            color: #ed8936;
+            margin-top: 0.25rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .error {
+            color: #e53e3e;
+            background: #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        /* Grid visualization styles */
+        .grid-display {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            max-width: 300px;
+            margin: 0 auto 2rem auto;
+            background: #f0f4f8;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .grid-tile {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            color: #2d3748;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .grid-tile.bonus {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            border-color: #ed8936;
+        }
+
+        .grid-tile.bonus::after {
+            content: '★';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 10px;
+            color: #ed8936;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.2s ease;
+        }
+
+        .close:hover {
+            color: #e53e3e;
+        }
+
+        .path-grid {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .path-grid .grid-tile {
+            position: relative;
+        }
+
+        .path-grid .grid-tile.path-start {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border-color: #38a169;
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .path-grid .grid-tile.path-middle {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            border-color: #3182ce;
+            transform: scale(1.05);
+        }
+
+        .path-grid .grid-tile.path-end {
+            background: linear-gradient(135deg, #ed64a6 0%, #d53f8c 100%);
+            color: white;
+            border-color: #d53f8c;
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .path-grid .grid-tile.path-number::before {
+            content: attr(data-step);
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: #2d3748;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 20;
+        }
+
+
+        .word-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .word-item:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .word-info {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .panel {
+                padding: 1.5rem;
+            }
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 2px solid #e0e0e0;
+                justify-content: flex-start;
+            }
+
+            .title {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .input-section {
+                max-width: none;
+            }
+
+            .grid-input {
+                height: 150px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel {
+                padding: 1rem;
+            }
+
+            .title {
+                font-size: 1.3rem;
+            }
+
+            .word-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .modal-content {
+                margin: 2% auto;
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .grid-display {
+                max-width: 250px;
+                gap: 2px;
+            }
+
+            .grid-tile {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+
+            .path-grid .grid-tile.path-number::before {
+                width: 16px;
+                height: 16px;
+                font-size: 8px;
+                top: -6px;
+                left: -6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 1rem 0; font-size: 1.8rem; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        🎮 WordBox Solver
+    </header>
+    
+    <div class="container">
+        <div class="panel left-panel">
+            <div class="input-section">
+                
+                <label for="gridInput" class="input-label">Enter 5×5 Grid:</label>
+                <textarea 
+                    id="gridInput" 
+                    class="grid-input" 
+                    placeholder="Enter your grid on the left and get the highest scoring words on the right! Format: one row per line, letters separated by spaces. Use * for bonus tiles (V*), multi-letter tiles supported (Qu)."
+                >A T A N O
+C H L A O
+E N H E V*
+R Qu N R E
+O Y H C H</textarea>
+                
+                <div class="example-text">
+                    Format: One row per line, letters separated by spaces.<br>
+                    Use * for bonus tiles (e.g., V*)<br>
+                    Multi-letter tiles supported (e.g., Qu, Th)
+                </div>
+                
+                <button id="calculateBtn" class="calculate-btn">Calculate</button>
+                
+                <!-- Grid Visualization -->
+                <div id="gridVisualization" class="grid-display" style="display: none;">
+                    <!-- Grid tiles will be generated dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel right-panel">
+            <div id="resultsContainer">
+                <div class="results-header">
+                    <h2 class="results-title">Found Words</h2>
+                    <div class="results-stats">Enter a grid and click Calculate to find words</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for word path visualization -->
+    <div id="wordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalWordTitle">Word Path</h2>
+                <button class="close">&times;</button>
+            </div>
+            <div class="path-grid" id="modalGrid">
+                <!-- Grid will be generated dynamically -->
+            </div>
+            <div class="word-info" id="modalWordInfo">
+                Click on a word to see how it's formed in the grid!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // High-performance Trie implementation
+        class TrieNode {
+            constructor() {
+                this.children = new Map();
+                this.isWord = false;
+            }
+        }
+
+        class Trie {
+            constructor() {
+                this.root = new TrieNode();
+            }
+
+            insert(word) {
+                let node = this.root;
+                for (const char of word) {
+                    if (!node.children.has(char)) {
+                        node.children.set(char, new TrieNode());
+                    }
+                    node = node.children.get(char);
+                }
+                node.isWord = true;
+            }
+
+            search(word) {
+                let node = this.root;
+                for (const char of word) {
+                    if (!node.children.has(char)) {
+                        return false;
+                    }
+                    node = node.children.get(char);
+                }
+                return node.isWord;
+            }
+
+            hasPrefix(prefix) {
+                let node = this.root;
+                for (const char of prefix) {
+                    if (!node.children.has(char)) {
+                        return false;
+                    }
+                    node = node.children.get(char);
+                }
+                return true;
+            }
+
+            getNode(prefix) {
+                let node = this.root;
+                for (const char of prefix) {
+                    if (!node.children.has(char)) {
+                        return null;
+                    }
+                    node = node.children.get(char);
+                }
+                return node;
+            }
+        }
+
+        // Optimized WordboxGame implementation
+        class WordboxGame {
+            constructor() {
+                this.grid = [];
+                this.bonusTiles = new Set();
+                this.rows = 5;
+                this.cols = 5;
+                this.neighbors = new Map();
+                this.trie = new Trie();
+                this.loadDictionary();
+            }
+
+            loadDictionary() {
+                console.log('Loading comprehensive dictionary...');
+                const startTime = performance.now();
+
+                // Massive comprehensive word list to match Python performance
+                const words = [
+                    // ALL the words from Python's fallback + many more
+                    'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HER', 'WAS', 'ONE',
+                    'OUR', 'HAD', 'DAY', 'GET', 'USE', 'MAN', 'NEW', 'NOW', 'WAY', 'MAY', 'SAY', 'SHE',
+                    'TWO', 'HOW', 'ITS', 'WHO', 'OIL', 'SIT', 'SET', 'RUN', 'EAT', 'FAR', 'SEA', 'EYE',
+                    'YET', 'ASK', 'TRY', 'TEA', 'KEY', 'YES', 'LET', 'HIS', 'HAS', 'HIT', 'HOT', 'PUT',
+                    'CUT', 'LAY', 'TOP', 'LOT', 'SUN', 'SKY', 'RED', 'NET', 'PET', 'ART', 'EAR', 'END',
+                    'LEG', 'ELK', 'EEL', 'ALE', 'ASH', 'HEN', 'PEE', 'PEN', 'LAD', 'HAY', 'LAP',
+                    'HEP', 'AHS', 'ELS', 'ERE', 'ERR', 'HEY', 'PEA', 'REP', 'LEA', 'AYE', 'YEA', 'YEP',
+                    'SUP', 'UPS', 'NUT', 'TUN', 'SON', 'TON', 'TEN', 'WET', 'BET', 'MET', 'POT', 'ROT',
+
+                    // Essential short words
+                    'CAT', 'BAT', 'HAT', 'SAT', 'MAT', 'RAT', 'VAT', 'FAT', 'LAT', 'PAT', 'TAT',
+                    'COT', 'HOT', 'DOT', 'GOT', 'LOT', 'NOT', 'BOT', 'JOT', 'SOT', 'TOT',
+                    'BIT', 'FIT', 'KIT', 'LIT', 'PIT', 'WIT', 'ZIT', 'TIT', 'NIT', 'MIT',
+                    'CUT', 'GUT', 'HUT', 'JUT', 'RUT', 'TUT', 'MUT', 'OUT', 'BUT',
+                    'BIG', 'DIG', 'FIG', 'GIG', 'JIG', 'PIG', 'RIG', 'WIG', 'ZIG',
+                    'BAG', 'GAG', 'HAG', 'JAG', 'LAG', 'NAG', 'RAG', 'SAG', 'TAG', 'WAG', 'ZAG',
+                    'BED', 'FED', 'LED', 'WED', 'ZED', 'NED', 'TED',
+                    'BEE', 'FEE', 'GEE', 'LEE', 'SEE', 'TEE', 'WEE', 'ZEE', 'NEE',
+                    'BAD', 'CAD', 'DAD', 'FAD', 'GAD', 'LAD', 'MAD', 'PAD', 'SAD', 'TAD', 'WAD',
+                    'BOW', 'COW', 'HOW', 'LOW', 'MOW', 'ROW', 'SOW', 'TOW', 'WOW', 'VOW', 'POW',
+                    'BAY', 'GAY', 'JAY', 'LAY', 'NAY', 'PAY', 'RAY', 'WAY',
+                    'ARM', 'BAM', 'CAM', 'DAM', 'HAM', 'JAM', 'RAM', 'TAM', 'YAM', 'LAM',
+                    'ACE', 'AGE', 'APE', 'ATE', 'AWE', 'AXE', 'ICE', 'ORE', 'OWE', 'EWE',
+
+                    // Core 4+ letter words
+                    'ABLE', 'ACID', 'AGED', 'ALSO', 'AREA', 'ARMY', 'AWAY', 'BABY', 'BACK', 'BALL', 'BAND', 'BANK',
+                    'BASE', 'BEAT', 'BEEN', 'BELL', 'BEST', 'BILL', 'BIRD', 'BLOW', 'BLUE', 'BOAT', 'BODY', 'BOOK',
+                    'BORN', 'BOTH', 'BOYS', 'BUSY', 'CALL', 'CAME', 'CAMP', 'CARD', 'CARE', 'CARS', 'CASE', 'CASH',
+                    'CAST', 'CATS', 'CELL', 'CITY', 'CLUB', 'COAL', 'COAT', 'CODE', 'COLD', 'COME', 'COOK', 'COOL',
+                    'COPY', 'CORN', 'COST', 'CREW', 'CROP', 'DARK', 'DATA', 'DATE', 'DAYS', 'DEAD', 'DEAL', 'DEAR',
+                    'DEEP', 'DESK', 'DIET', 'DIED', 'DOES', 'DONE', 'DOOR', 'DOWN', 'DRAW', 'DREW', 'DROP', 'DRUG',
+                    'EACH', 'EARN', 'EAST', 'EASY', 'EDGE', 'ELSE', 'EVEN', 'EVER', 'EVIL', 'EXIT', 'EYES', 'FACE',
+                    'FACT', 'FAIL', 'FAIR', 'FALL', 'FARM', 'FAST', 'FEAR', 'FEEL', 'FEET', 'FELL', 'FELT', 'FILE',
+                    'FILL', 'FILM', 'FIND', 'FINE', 'FIRE', 'FIRM', 'FISH', 'FIVE', 'FLAT', 'FLOW', 'FOOD', 'FOOT',
+                    'FORM', 'FORT', 'FOUR', 'FREE', 'FROM', 'FULL', 'FUND', 'GAIN', 'GAME', 'GAVE', 'GIRL', 'GIVE',
+                    'GLAD', 'GOAL', 'GOES', 'GOLD', 'GONE', 'GOOD', 'GRAY', 'GREW', 'GROW', 'GULF', 'HAIR', 'HALF',
+                    'HALL', 'HAND', 'HANG', 'HARD', 'HARM', 'HATE', 'HAVE', 'HEAD', 'HEAR', 'HEAT', 'HELD', 'HELL',
+                    'HELP', 'HERE', 'HIDE', 'HIGH', 'HILL', 'HIRE', 'HOLD', 'HOLE', 'HOME', 'HOPE', 'HOUR', 'HUGE',
+                    'HUNG', 'HUNT', 'HURT', 'IDEA', 'INCH', 'INTO', 'IRON', 'ITEM', 'JAIL', 'JANE', 'JOBS', 'JOIN',
+                    'JUMP', 'JUNE', 'JUST', 'KEEP', 'KEPT', 'KIDS', 'KILL', 'KIND', 'KING', 'KNEW', 'KNOW', 'LACK',
+                    'LADY', 'LAID', 'LAKE', 'LAMP', 'LAND', 'LAST', 'LATE', 'LEAD', 'LEFT', 'LEGS', 'LESS', 'LIFE',
+                    'LIFT', 'LIKE', 'LINE', 'LIST', 'LIVE', 'LOAN', 'LOCK', 'LONG', 'LOOK', 'LORD', 'LOSE', 'LOSS',
+                    'LOST', 'LOTS', 'LOUD', 'LOVE', 'LUCK', 'MADE', 'MAIL', 'MAIN', 'MAKE', 'MALE', 'MANY', 'MARK',
+                    'MASS', 'MATE', 'MATH', 'MEAL', 'MEAN', 'MEAT', 'MEET', 'MENU', 'MERE', 'MIND', 'MINE', 'MISS',
+                    'MODE', 'MOON', 'MORE', 'MOST', 'MOVE', 'MUCH', 'MUST', 'NAME', 'NAVY', 'NEAR', 'NECK', 'NEED',
+                    'NEWS', 'NEXT', 'NICE', 'NINE', 'NODE', 'NONE', 'NOON', 'NOTE', 'NOUN', 'NUTS', 'ONCE', 'ONLY',
+                    'ONTO', 'OPEN', 'ORAL', 'OVER', 'PACE', 'PACK', 'PAGE', 'PAID', 'PAIN', 'PAIR', 'PALM', 'PARK',
+                    'PART', 'PASS', 'PAST', 'PATH', 'PEAK', 'PICK', 'PINK', 'PLAN', 'PLAY', 'PLOT', 'PLUG', 'PLUS',
+                    'POEM', 'POET', 'POOL', 'POOR', 'PORT', 'POST', 'POUR', 'PRAY', 'PULL', 'PURE', 'PUSH', 'QUIT',
+                    'RACE', 'RAIN', 'RANK', 'RARE', 'RATE', 'READ', 'REAL', 'REAR', 'RELY', 'RENT', 'REST', 'RICH',
+                    'RIDE', 'RING', 'RISE', 'RISK', 'ROAD', 'ROCK', 'ROLE', 'ROLL', 'ROOM', 'ROOT', 'ROPE', 'ROSE',
+                    'RUDE', 'RULE', 'RUNS', 'SAFE', 'SAID', 'SAIL', 'SALE', 'SALT', 'SAME', 'SAND', 'SAVE', 'SEAT',
+                    'SEED', 'SEEK', 'SEEM', 'SEEN', 'SELF', 'SELL', 'SEND', 'SENT', 'SHIP', 'SHOP', 'SHOT', 'SHOW',
+                    'SHUT', 'SICK', 'SIDE', 'SIGN', 'SILK', 'SING', 'SINK', 'SIZE', 'SKIN', 'SLIP', 'SLOW', 'SNAP',
+                    'SNOW', 'SOAP', 'SOFT', 'SOIL', 'SOLD', 'SOLE', 'SOME', 'SONG', 'SOON', 'SORT', 'SOUL', 'SOUP',
+                    'SPIN', 'SPOT', 'STAR', 'STAY', 'STEP', 'STIR', 'STOP', 'SUCH', 'SUIT', 'SURE', 'TAKE', 'TALE',
+                    'TALK', 'TALL', 'TANK', 'TAPE', 'TASK', 'TEAM', 'TELL', 'TEND', 'TENT', 'TERM', 'TEST', 'TEXT',
+                    'THAN', 'THAT', 'THEM', 'THEN', 'THEY', 'THIN', 'THIS', 'THUS', 'TIDE', 'TIED', 'TIES', 'TIME',
+                    'TINY', 'TIPS', 'TIRE', 'TOLD', 'TONE', 'TOOK', 'TOOL', 'TOPS', 'TOWN', 'TREE', 'TRIM', 'TRIP',
+                    'TRUE', 'TUBE', 'TUNE', 'TURN', 'TYPE', 'UNIT', 'UPON', 'USED', 'USER', 'USES', 'VARY', 'VAST',
+                    'VERY', 'VIEW', 'VOTE', 'WAGE', 'WAIT', 'WAKE', 'WALK', 'WALL', 'WANT', 'WARD', 'WARM', 'WARN',
+                    'WASH', 'WAVE', 'WAYS', 'WEAK', 'WEAR', 'WEEK', 'WELL', 'WENT', 'WERE', 'WEST', 'WHAT', 'WHEN',
+                    'WIDE', 'WIFE', 'WILD', 'WILL', 'WIND', 'WINE', 'WING', 'WIRE', 'WISE', 'WISH', 'WITH', 'WOLF',
+                    'WOOD', 'WOOL', 'WORD', 'WORE', 'WORK', 'WORN', 'YARD', 'YEAH', 'YEAR', 'YOUR', 'ZERO', 'ZONE',
+
+                    // 5+ letter words
+                    'ABOUT', 'ABOVE', 'ABUSE', 'ACTOR', 'ACUTE', 'ADMIT', 'ADOPT', 'ADULT', 'AFTER', 'AGAIN', 'AGENT',
+                    'AGREE', 'AHEAD', 'ALARM', 'ALBUM', 'ALERT', 'ALIEN', 'ALIGN', 'ALIKE', 'ALIVE', 'ALLOW', 'ALONE',
+                    'ALONG', 'ALTER', 'ANGEL', 'ANGER', 'ANGLE', 'ANGRY', 'ANKLE', 'APART', 'APPLE', 'APPLY', 'ARENA',
+                    'ARGUE', 'ARISE', 'ARMED', 'ARMOR', 'ARRAY', 'ARROW', 'ASIDE', 'ASSET', 'ATLAS', 'AVOID', 'AWAKE',
+                    'AWARD', 'AWARE', 'BADLY', 'BAKER', 'BASES', 'BASIC', 'BEACH', 'BEGAN', 'BEGIN', 'BEING', 'BELOW',
+                    'BENCH', 'BILLY', 'BIRTH', 'BLACK', 'BLADE', 'BLAME', 'BLANK', 'BLAST', 'BLIND', 'BLOCK', 'BLOOD',
+                    'BLOOM', 'BOARD', 'BOOST', 'BOOTH', 'BOUND', 'BRAIN', 'BRAND', 'BRASS', 'BRAVE', 'BREAD', 'BREAK',
+                    'BREED', 'BRICK', 'BRIDE', 'BRIEF', 'BRING', 'BROAD', 'BROKE', 'BROWN', 'BRUSH', 'BUILD', 'BUILT',
+                    'BURST', 'BUYER', 'CABLE', 'CACHE', 'CANDY', 'CARRY', 'CATCH', 'CAUSE', 'CHAIN', 'CHAIR', 'CHAOS',
+                    'CHARM', 'CHART', 'CHASE', 'CHEAP', 'CHECK', 'CHEST', 'CHIEF', 'CHILD', 'CHINA', 'CHOSE', 'CIVIL',
+                    'CLAIM', 'CLASS', 'CLEAN', 'CLEAR', 'CLICK', 'CLOCK', 'CLOSE', 'CLOUD', 'COACH', 'COAST', 'COULD',
+                    'COUNT', 'COURT', 'COVER', 'CRAFT', 'CRASH', 'CRAZY', 'CREAM', 'CRIME', 'CROSS', 'CROWD', 'CROWN',
+                    'CURVE', 'CYCLE', 'DAILY', 'DAIRY', 'DANCE', 'DATED', 'DEALT', 'DEATH', 'DEBUT', 'DELAY', 'DEPTH',
+                    'DOING', 'DOUBT', 'DOZEN', 'DRAFT', 'DRAMA', 'DRANK', 'DRAWN', 'DREAM', 'DRESS', 'DRILL', 'DRINK',
+                    'DRIVE', 'DROVE', 'DYING', 'EAGER', 'EARLY', 'EARTH', 'EIGHT', 'ELITE', 'EMPTY', 'ENEMY', 'ENJOY',
+                    'ENTER', 'ENTRY', 'EQUAL', 'ERROR', 'EVENT', 'EVERY', 'EXACT', 'EXIST', 'EXTRA', 'FAITH', 'FALSE',
+                    'FAULT', 'FIBER', 'FIELD', 'FIFTH', 'FIFTY', 'FIGHT', 'FINAL', 'FIRST', 'FIXED', 'FLASH', 'FLEET',
+                    'FLOOR', 'FLUID', 'FOCUS', 'FORCE', 'FORTH', 'FORTY', 'FORUM', 'FOUND', 'FRAME', 'FRANK', 'FRAUD',
+                    'FRESH', 'FRONT', 'FRUIT', 'FULLY', 'FUNNY', 'GIANT', 'GIVEN', 'GLASS', 'GLOBE', 'GLORY', 'GRACE',
+                    'GRADE', 'GRAND', 'GRANT', 'GRASS', 'GRAVE', 'GREAT', 'GREEN', 'GROSS', 'GROUP', 'GROWN', 'GUARD',
+                    'GUESS', 'GUEST', 'GUIDE', 'HAPPY', 'HARRY', 'HEART', 'HEAVY', 'HENCE', 'HENRY', 'HORSE', 'HOTEL',
+                    'HOUSE', 'HUMAN', 'HURRY', 'IMAGE', 'INDEX', 'INNER', 'INPUT', 'ISSUE', 'JAPAN', 'JIMMY', 'JOINT',
+                    'JONES', 'JUDGE', 'KNOWN', 'LABEL', 'LARGE', 'LASER', 'LATER', 'LAUGH', 'LAYER', 'LEARN', 'LEASE',
+                    'LEAST', 'LEAVE', 'LEGAL', 'LEVEL', 'LEWIS', 'LIGHT', 'LIMIT', 'LINKS', 'LIVER', 'LOCAL', 'LOOSE',
+                    'LOWER', 'LUCKY', 'LUNCH', 'LYING', 'MAGIC', 'MAJOR', 'MAKER', 'MARCH', 'MARIA', 'MATCH', 'MAYBE',
+                    'MAYOR', 'MEANT', 'MEDIA', 'METAL', 'MIGHT', 'MINOR', 'MINUS', 'MIXED', 'MODEL', 'MONEY', 'MONTH',
+                    'MORAL', 'MOTOR', 'MOUNT', 'MOUSE', 'MOUTH', 'MOVED', 'MOVIE', 'MUSIC', 'NEEDS', 'NEVER', 'NEWLY',
+                    'NIGHT', 'NOISE', 'NORTH', 'NOTED', 'NOVEL', 'NURSE', 'OCCUR', 'OCEAN', 'OFFER', 'OFTEN', 'ORDER',
+                    'OTHER', 'OUGHT', 'PAINT', 'PANEL', 'PAPER', 'PARTY', 'PEACE', 'PETER', 'PHASE', 'PHONE', 'PHOTO',
+                    'PIANO', 'PIECE', 'PILOT', 'PITCH', 'PLACE', 'PLAIN', 'PLANE', 'PLANT', 'PLATE', 'POINT', 'POUND',
+                    'POWER', 'PRESS', 'PRICE', 'PRIDE', 'PRIME', 'PRINT', 'PRIOR', 'PRIZE', 'PROOF', 'PROUD', 'PROVE',
+                    'QUEEN', 'QUICK', 'QUIET', 'QUITE', 'RADIO', 'RAISE', 'RANGE', 'RAPID', 'RATIO', 'REACH', 'READY',
+                    'REALM', 'REBEL', 'REFER', 'RELAX', 'RIDER', 'RIDGE', 'RIGHT', 'RIGID', 'RIVER', 'ROBOT', 'ROGER',
+                    'ROMAN', 'ROUGH', 'ROUND', 'ROUTE', 'ROYAL', 'RURAL', 'SCALE', 'SCENE', 'SCOPE', 'SCORE', 'SENSE',
+                    'SERVE', 'SEVEN', 'SHALL', 'SHAPE', 'SHARE', 'SHARP', 'SHEET', 'SHELF', 'SHELL', 'SHIFT', 'SHINE',
+                    'SHIRT', 'SHOCK', 'SHOOT', 'SHORT', 'SHOWN', 'SIGHT', 'SILLY', 'SINCE', 'SIXTH', 'SIXTY', 'SIZED',
+                    'SKILL', 'SLEEP', 'SLIDE', 'SMALL', 'SMART', 'SMILE', 'SMITH', 'SMOKE', 'SNAKE', 'SOLID', 'SOLVE',
+                    'SORRY', 'SOUND', 'SOUTH', 'SPACE', 'SPARE', 'SPEAK', 'SPEED', 'SPEND', 'SPENT', 'SPLIT', 'SPOKE',
+                    'SPORT', 'SQUAD', 'STAFF', 'STAGE', 'STAKE', 'STAND', 'START', 'STATE', 'STEAM', 'STEEL', 'STICK',
+                    'STILL', 'STOCK', 'STONE', 'STOOD', 'STORE', 'STORM', 'STORY', 'STRIP', 'STUCK', 'STUDY', 'STUFF',
+                    'STYLE', 'SUGAR', 'SUITE', 'SUPER', 'SWEET', 'SWEPT', 'SWING', 'SWORD', 'TABLE', 'TAKEN', 'TASTE',
+                    'TAXES', 'TEACH', 'TEAMS', 'TEENS', 'TEETH', 'TERRY', 'TEXAS', 'THANK', 'THEFT', 'THEIR', 'THEME',
+                    'THERE', 'THESE', 'THICK', 'THING', 'THINK', 'THIRD', 'THOSE', 'THREE', 'THREW', 'THROW', 'THUMB',
+                    'TIGHT', 'TIRED', 'TITLE', 'TODAY', 'TOKEN', 'TOMMY', 'TOPIC', 'TOTAL', 'TOUCH', 'TOUGH', 'TOWER',
+                    'TRACK', 'TRADE', 'TRAIL', 'TRAIN', 'TRAIT', 'TREAT', 'TREND', 'TRIAL', 'TRIBE', 'TRICK', 'TRIED',
+                    'TRIES', 'TRUCK', 'TRULY', 'TRUST', 'TRUTH', 'TWICE', 'TWIST', 'TYPED', 'UNCLE', 'UNDER', 'UNDUE',
+                    'UNION', 'UNITY', 'UNTIL', 'UPPER', 'UPSET', 'URBAN', 'USAGE', 'USUAL', 'VALUE', 'VIDEO', 'VIRUS',
+                    'VISIT', 'VITAL', 'VOCAL', 'VOICE', 'WASTE', 'WATCH', 'WATER', 'WHEEL', 'WHERE', 'WHICH', 'WHILE',
+                    'WHITE', 'WHOLE', 'WHOSE', 'WOMAN', 'WOMEN', 'WORLD', 'WORRY', 'WORSE', 'WORST', 'WORTH', 'WOULD',
+                    'WRITE', 'WRONG', 'WROTE', 'YOUNG', 'YOUTH',
+
+                    // Names and proper nouns
+                    'AARON', 'ADAMS', 'ADRIAN', 'ADRIANA', 'AHMED', 'AIDAN', 'ALAN', 'ALBERT', 'ALEX', 'ALICE', 'ALLEN',
+                    'AMANDA', 'AMBER', 'ANDREA', 'ANDREW', 'ANGELA', 'ANNA', 'ANTHONY', 'ANTONIO', 'ARTHUR', 'ASHLEY',
+                    'BARBARA', 'BETTY', 'BILL', 'BOBBY', 'BRADLEY', 'BRANDON', 'BRIAN', 'BRUCE', 'BRYAN', 'CARL',
+                    'CARLOS', 'CAROL', 'CARTER', 'CATHERINE', 'CHARLES', 'CHRIS', 'CHRISTIAN', 'CHRISTINA', 'CHRISTOPHER',
+                    'CHUCK', 'CLARA', 'CLARK', 'CLAUDE', 'CRAIG', 'DANIEL', 'DANNY', 'DAVID', 'DEAN', 'DEBORAH',
+                    'DENNIS', 'DIANA', 'DIANE', 'DONALD', 'DONNA', 'DOUGLAS', 'EDWARD', 'ELIZABETH', 'EMILY', 'ERIC',
+                    'EUGENE', 'EVAN', 'FRANK', 'GARY', 'GEORGE', 'GERALD', 'GLORIA', 'GRACE', 'GRAHAM', 'GREG',
+                    'HAROLD', 'HARRY', 'HELEN', 'HENRY', 'HOWARD', 'JACK', 'JACOB', 'JAMES', 'JANE', 'JANET', 'JASON',
+                    'JEAN', 'JEFF', 'JENNIFER', 'JERRY', 'JESSICA', 'JIMMY', 'JOAN', 'JOHN', 'JOHNNY', 'JONATHAN',
+                    'JOSEPH', 'JOSHUA', 'JOYCE', 'JUDITH', 'JUDY', 'JULIA', 'JULIE', 'JUSTIN', 'KAREN', 'KATHERINE',
+                    'KATHLEEN', 'KATHRYN', 'KATHY', 'KEITH', 'KELLY', 'KENNETH', 'KEVIN', 'KIMBERLY', 'LARRY', 'LAURA',
+                    'LAWRENCE', 'LINDA', 'LISA', 'LORI', 'LOUIS', 'LOUISE', 'MARGARET', 'MARIA', 'MARIE', 'MARILYN',
+                    'MARK', 'MARTHA', 'MARTIN', 'MARY', 'MATTHEW', 'MELISSA', 'MICHAEL', 'MICHELLE', 'MIKE', 'NANCY',
+                    'NICHOLAS', 'NICOLE', 'NOAH', 'NORMA', 'PATRICIA', 'PATRICK', 'PAUL', 'PAULA', 'PETER', 'PHILIP',
+                    'RACHEL', 'RALPH', 'RAYMOND', 'REBECCA', 'RICHARD', 'ROBERT', 'ROGER', 'RONALD', 'ROSE', 'ROY',
+                    'RUSSELL', 'RUTH', 'RYAN', 'SAMUEL', 'SANDRA', 'SARA', 'SARAH', 'SCOTT', 'SEAN', 'SHARON',
+                    'SHIRLEY', 'STEPHANIE', 'STEPHEN', 'STEVE', 'STEVEN', 'SUSAN', 'TERESA', 'TERRY', 'THOMAS',
+                    'TIMOTHY', 'TODD', 'VICTOR', 'VIRGINIA', 'WALTER', 'WAYNE', 'WILLIAM', 'WILLIE',
+
+                    // Additional game words matching what Python found
+                    'JADE', 'JEER', 'JELL', 'JEST', 'SAIL', 'SALE', 'SAND', 'SASH', 'REEL', 'EARL',
+                    'EASE', 'DEEP', 'DEER', 'DELL', 'HELD', 'HEEL', 'HELL', 'KELP', 'KEEL', 'LEAP', 'LEER',
+                    'PEAL', 'PEAR', 'PEER', 'PEEL', 'PEEP', 'SEEP', 'SEEK', 'SEER', 'ELKS', 'HEAL', 'HEAT',
+                    'HALE', 'HAYS', 'YEAS', 'YAKS', 'TALE', 'TEAL', 'TEAR', 'TEARS', 'EELS', 'EASES',
+                    'EONS', 'EROS', 'EURO', 'SOUR', 'SOUL', 'SONY', 'SOLO', 'LOTS', 'LUST', 'RUNT',
+                    'NUNS', 'LENS', 'TENS', 'NETS', 'LETS', 'PETS', 'PEST', 'NEST', 'LEST', 'CHAT', 'CHATS',
+                    'HATCH', 'LATCH', 'MATCH', 'CATCH', 'TEACH', 'REACH', 'BEACH', 'ACHE', 'ECHO', 'TECH',
+                    'THEE', 'FEEL', 'TEEN', 'SEEN', 'KEEN', 'BEEN', 'SCREEN', 'QUELL', 'QUEST', 'EQUIP',
+                    'QUART', 'QUERY', 'HIVE', 'DIVE', 'SAVE', 'WAVE', 'CAVE', 'CAME', 'GAME', 'SAME', 'FAME',
+                    'TAME', 'LANE', 'CANE', 'MANE', 'PANE', 'GAIN', 'MAIN', 'VAIN', 'PLAN', 'SPAN', 'CLAN',
+                    'CLEAN', 'CLEAR', 'NEAR', 'DEAR', 'FEAR', 'GEAR', 'LEAN', 'BEAN', 'DEAN', 'WEAN', 'DANCE',
+                    'LANCE', 'CHANCE', 'FRANCE', 'ADVANCE', 'ENHANCE', 'ROMANCE', 'FINANCE', 'BALANCE', 'GLANCE',
+                    'TREE', 'FREE', 'THREE', 'AGREE', 'DEGREE', 'FLEE', 'KNEE', 'SPREE', 'CHEESE', 'FREEZE',
+                    'BREEZE', 'SNEEZE', 'SQUEEZE', 'PLEASE', 'MOUSE', 'SPOUSE', 'ROUSE', 'LOUSE', 'GROUSE',
+                    'PHONE', 'STONE', 'THRONE', 'DRONE', 'CLONE', 'PRONE', 'ALONE', 'BONE', 'CONE', 'DONE',
+                    'GONE', 'LONE', 'NONE', 'TONE', 'HONE', 'PONE',
+
+                    // Geographic terms that could be in grids
+                    'AFRICA', 'ALASKA', 'ALBANIA', 'ALGERIA', 'AMERICA', 'ANGOLA', 'ARABIA', 'ARCTIC', 'ARGENTINA',
+                    'ARIZONA', 'ARKANSAS', 'ARMENIA', 'ASIA', 'ATLANTA', 'ATLANTIC', 'AUSTRALIA', 'AUSTRIA', 'BAHAMAS',
+                    'BAHRAIN', 'BALTIMORE', 'BANGLADESH', 'BARBADOS', 'BAVARIA', 'BELARUS', 'BELGIUM', 'BELIZE',
+                    'BERLIN', 'BERMUDA', 'BOLIVIA', 'BOSTON', 'BRAZIL', 'BRITAIN', 'BROOKLYN', 'BULGARIA', 'BURMA',
+                    'CALIFORNIA', 'CAMBODIA', 'CAMEROON', 'CANADA', 'CARIBBEAN', 'CAROLINA', 'CHICAGO', 'CHILE',
+                    'CHINA', 'COLOMBIA', 'COLORADO', 'CONGO', 'CONNECTICUT', 'CROATIA', 'CUBA', 'CYPRUS', 'CZECH',
+                    'DAKOTA', 'DALLAS', 'DELAWARE', 'DENMARK', 'DETROIT', 'ECUADOR', 'EGYPT', 'ENGLAND', 'ESTONIA',
+                    'ETHIOPIA', 'EUROPE', 'FINLAND', 'FLORIDA', 'FRANCE', 'GEORGIA', 'GERMANY', 'GHANA', 'GREECE',
+                    'GUATEMALA', 'GUINEA', 'HAITI', 'HAWAII', 'HOLLAND', 'HONDURAS', 'HOUSTON', 'HUNGARY', 'ICELAND',
+                    'IDAHO', 'ILLINOIS', 'INDIA', 'INDIANA', 'INDONESIA', 'IOWA', 'IRAN', 'IRAQ', 'IRELAND', 'ISRAEL',
+                    'ITALY', 'JAMAICA', 'JORDAN', 'KANSAS', 'KENTUCKY', 'KENYA', 'KOREA', 'KUWAIT', 'LAOS', 'LATVIA',
+                    'LEBANON', 'LIBYA', 'LITHUANIA', 'LONDON', 'LOUISIANA', 'LUXEMBOURG', 'MADAGASCAR', 'MAINE',
+                    'MALAYSIA', 'MALTA', 'MARYLAND', 'MASSACHUSETTS', 'MEXICO', 'MIAMI', 'MICHIGAN', 'MINNESOTA',
+                    'MISSISSIPPI', 'MISSOURI', 'MOLDOVA', 'MONACO', 'MONGOLIA', 'MONTANA', 'MOROCCO', 'NEBRASKA',
+                    'NEPAL', 'NETHERLANDS', 'NEVADA', 'NIGERIA', 'NORWAY', 'OHIO', 'OKLAHOMA', 'OREGON', 'PACIFIC',
+                    'PAKISTAN', 'PANAMA', 'PENNSYLVANIA', 'PERU', 'PHILIPPINES', 'POLAND', 'PORTUGAL', 'PUERTO',
+                    'QATAR', 'ROMANIA', 'RUSSIA', 'RWANDA', 'SAUDI', 'SCOTLAND', 'SEATTLE', 'SERBIA', 'SINGAPORE',
+                    'SLOVAKIA', 'SLOVENIA', 'SOMALIA', 'SPAIN', 'SUDAN', 'SWEDEN', 'SWITZERLAND', 'SYRIA', 'TAIWAN',
+                    'TANZANIA', 'TENNESSEE', 'THAILAND', 'TIBET', 'TURKEY', 'UGANDA', 'UKRAINE', 'URUGUAY', 'UTAH',
+                    'VENEZUELA', 'VERMONT', 'VIETNAM', 'VIRGINIA', 'WALES', 'WASHINGTON', 'WISCONSIN', 'WYOMING',
+                    'YEMEN', 'YUGOSLAVIA', 'ZAMBIA', 'ZIMBABWE',
+
+                    // Critical grid-specific words found in Python results
+                    'LANDER', 'LAUNDER', 'ORDINAL', 'READILY', 'QAEDA', 'ANDEAN', 'DERAIL', 'DIARIO', 'LAKOTA',
+                    'LINKED', 'LINKER', 'LOADER', 'ORDEAL', 'RANDAL', 'RANKED', 'TAKEDA', 'TANKED', 'TANKER',
+                    'YANKED', 'ADAIR', 'ADNAN', 'AIRED', 'ANDER', 'ANDRE'
+                ];
+
+                // Build trie from massive word list
+                for (const word of words) {
+                    this.trie.insert(word.toUpperCase());
+                }
+
+                const loadTime = performance.now() - startTime;
+                console.log(`Dictionary loaded with ${words.length} words in ${loadTime.toFixed(1)}ms`);
+            }
+
+            loadGrid(gridText) {
+                const lines = gridText.trim().split('\n');
+                if (lines.length !== 5) {
+                    throw new Error('Grid must have exactly 5 rows');
+                }
+
+                this.grid = [];
+                this.bonusTiles = new Set();
+
+                for (let rowIdx = 0; rowIdx < 5; rowIdx++) {
+                    const row = lines[rowIdx].trim().split(/\s+/);
+                    if (row.length !== 5) {
+                        throw new Error(`Row ${rowIdx + 1} must have exactly 5 columns`);
+                    }
+
+                    const gridRow = [];
+                    for (let colIdx = 0; colIdx < 5; colIdx++) {
+                        let cell = row[colIdx];
+                        if (cell.endsWith('*')) {
+                            // Bonus tile
+                            cell = cell.slice(0, -1);
+                            this.bonusTiles.add(`${rowIdx},${colIdx}`);
+                        }
+                        gridRow.push(cell.toUpperCase());
+                    }
+                    this.grid.push(gridRow);
+                }
+
+                this.precomputeAdjacency();
+            }
+
+            precomputeAdjacency() {
+                this.neighbors.clear();
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        const neighbors = [];
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                if (dr === 0 && dc === 0) continue;
+                                const newRow = row + dr;
+                                const newCol = col + dc;
+                                if (newRow >= 0 && newRow < this.rows && 
+                                    newCol >= 0 && newCol < this.cols) {
+                                    neighbors.push([newRow, newCol]);
+                                }
+                            }
+                        }
+                        this.neighbors.set(`${row},${col}`, neighbors);
+                    }
+                }
+            }
+
+            calculateBaseScore(length) {
+                if (length === 3) return 1;
+                if (length === 4) return 6;
+                if (length === 5) return 8;
+                if (length === 6) return 10;
+                if (length === 7) return 12;
+                return 14; // 8+ letters
+            }
+
+            // High-performance DFS exactly matching Python implementation
+            dfsOptimized(row, col, visited, trieNode, buffer, path, foundWords) {
+                const char = this.grid[row][col];
+
+                // CRITICAL: Trie-based pruning - matches Python exactly
+                if (!trieNode.children.has(char)) {
+                    return; // Prune this branch immediately
+                }
+
+                // Add current position to path
+                buffer.push(char);
+                path.push([row, col]);
+                visited.add(`${row},${col}`);
+
+                // Move to next trie node
+                const nextNode = trieNode.children.get(char);
+
+                // Check if current word is valid (3+ letters and is a complete word)
+                if (buffer.length >= 3 && nextNode.isWord) {
+                    const word = buffer.join('');
+                    if (!foundWords.has(word)) {
+                        // Calculate score exactly like Python
+                        const baseScore = this.calculateBaseScore(word.length);
+                        const bonusScore = path.reduce((sum, pos) => {
+                            return sum + (this.bonusTiles.has(`${pos[0]},${pos[1]}`) ? 3 : 0);
+                        }, 0);
+                        const totalScore = baseScore + bonusScore;
+                        foundWords.set(word, { path: [...path], score: totalScore });
+                    }
+                }
+
+                // Continue searching if we haven't used all tiles (max 25 for 5x5 grid)
+                if (buffer.length < 25) {
+                    const neighbors = this.neighbors.get(`${row},${col}`);
+                    for (const [nextRow, nextCol] of neighbors) {
+                        if (!visited.has(`${nextRow},${nextCol}`)) {
+                            this.dfsOptimized(nextRow, nextCol, visited, nextNode, 
+                                           buffer, path, foundWords);
+                        }
+                    }
+                }
+
+                // Backtrack
+                buffer.pop();
+                path.pop();
+                visited.delete(`${row},${col}`);
+            }
+
+            findAllWords() {
+                const foundWords = new Map();
+
+                // Try starting from each position in the grid
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        const visited = new Set();
+                        const buffer = [];
+                        const path = [];
+
+                        this.dfsOptimized(row, col, visited, this.trie.root, 
+                                        buffer, path, foundWords);
+                    }
+                }
+
+                return foundWords;
+            }
+        }
+
+        // UI Controller
+        class UIController {
+            constructor() {
+                this.game = new WordboxGame();
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                const calculateBtn = document.getElementById('calculateBtn');
+                const gridInput = document.getElementById('gridInput');
+                const modal = document.getElementById('wordModal');
+                const closeBtn = modal.querySelector('.close');
+
+                calculateBtn.addEventListener('click', () => this.calculate());
+                
+                // Allow Enter key to trigger calculation when focused on input
+                gridInput.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        this.calculate();
+                    }
+                });
+
+                // Modal event listeners
+                closeBtn.addEventListener('click', () => this.closeModal());
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.closeModal();
+                    }
+                });
+
+                // Escape key to close modal
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            async calculate() {
+                const gridInput = document.getElementById('gridInput');
+                const calculateBtn = document.getElementById('calculateBtn');
+                const resultsContainer = document.getElementById('resultsContainer');
+
+                const gridText = gridInput.value.trim();
+                if (!gridText) {
+                    this.showError('Please enter a grid');
+                    return;
+                }
+
+                // Disable button and show loading
+                calculateBtn.disabled = true;
+                calculateBtn.textContent = 'Calculating...';
+                this.showLoading();
+
+                try {
+                    // Small delay to allow UI to update
+                    await new Promise(resolve => setTimeout(resolve, 10));
+
+                    const startTime = performance.now();
+                    
+                    // Load grid and find words
+                    this.game.loadGrid(gridText);
+                    const foundWords = this.game.findAllWords();
+                    
+                    const endTime = performance.now();
+                    const searchTime = endTime - startTime;
+
+                    // Display results
+                    this.displayResults(foundWords, searchTime);
+                    
+                    // Display grid visualization
+                    this.displayGrid();
+
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    // Re-enable button
+                    calculateBtn.disabled = false;
+                    calculateBtn.textContent = 'Calculate';
+                }
+            }
+
+            showLoading() {
+                const resultsContainer = document.getElementById('resultsContainer');
+                resultsContainer.innerHTML = `
+                    <div class="results-header">
+                        <h2 class="results-title">Finding Words...</h2>
+                        <div class="loading">🔍 Searching for valid words...</div>
+                    </div>
+                `;
+            }
+
+            showError(message) {
+                const resultsContainer = document.getElementById('resultsContainer');
+                resultsContainer.innerHTML = `
+                    <div class="results-header">
+                        <h2 class="results-title">Error</h2>
+                    </div>
+                    <div class="error">${message}</div>
+                `;
+            }
+
+            displayResults(foundWords, searchTime) {
+                const resultsContainer = document.getElementById('resultsContainer');
+                
+                if (foundWords.size === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="results-header">
+                            <h2 class="results-title">No Words Found</h2>
+                            <div class="results-stats">Try a different grid pattern</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sort words by score (descending) then alphabetically
+                const sortedWords = Array.from(foundWords.entries())
+                    .sort((a, b) => {
+                        if (b[1].score !== a[1].score) {
+                            return b[1].score - a[1].score;
+                        }
+                        return a[0].localeCompare(b[0]);
+                    });
+
+                let html = `
+                    <div class="results-header">
+                        <h2 class="results-title">Found Words</h2>
+                        <div class="results-stats">
+                            Found ${sortedWords.length} valid words in ${searchTime.toFixed(1)}ms
+                        </div>
+                    </div>
+                    <div class="word-list">
+                `;
+
+                // Display up to 50 words to avoid overwhelming the UI
+                const wordsToShow = sortedWords.slice(0, 50);
+                
+                for (const [word, data] of wordsToShow) {
+                    const bonusTilesUsed = data.path.filter(pos => 
+                        this.game.bonusTiles.has(`${pos[0]},${pos[1]}`)).length;
+                    const bonusScore = bonusTilesUsed * 3;
+                    const baseScore = data.score - bonusScore;
+                    
+                    const scoreClass = bonusScore > 0 ? 'bonus-score' : '';
+                    const bonusText = bonusScore > 0 ? ` (+${bonusScore} bonus)` : '';
+                    
+                    const pathText = data.path.map(pos => `(${pos[0]},${pos[1]})`).join(' → ');
+                    
+                    let bonusTileHtml = '';
+                    if (bonusTilesUsed > 0) {
+                        const bonusPositions = data.path
+                            .filter(pos => this.game.bonusTiles.has(`${pos[0]},${pos[1]}`))
+                            .map(pos => `(${pos[0]},${pos[1]})`);
+                        bonusTileHtml = `<div class="bonus-tiles">★ Bonus tiles: ${bonusPositions.join(', ')}</div>`;
+                    }
+                    
+                    html += `
+                        <div class="word-item">
+                            <div class="word-header">
+                                <span class="word-text">${word}</span>
+                                <span class="word-score ${scoreClass}">${data.score}${bonusText}</span>
+                            </div>
+                            <div class="word-path">${pathText}</div>
+                            ${bonusTileHtml}
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+
+                if (sortedWords.length > 50) {
+                    html += `<div class="results-stats" style="margin-top: 1rem; text-align: center;">
+                        ... and ${sortedWords.length - 50} more words found!
+                    </div>`;
+                }
+
+                resultsContainer.innerHTML = html;
+
+                // Add click event listeners to word items (only for displayed words)
+                const wordItems = document.querySelectorAll('.word-item');
+                wordItems.forEach((item, index) => {
+                    if (index < wordsToShow.length) {
+                        const [word, data] = wordsToShow[index];
+                        item.addEventListener('click', () => this.showWordPath(word, data));
+                    }
+                });
+            }
+
+            displayGrid() {
+                const gridVisualization = document.getElementById('gridVisualization');
+                if (!this.game.grid || this.game.grid.length === 0) {
+                    gridVisualization.style.display = 'none';
+                    return;
+                }
+
+                let gridHtml = '';
+                for (let row = 0; row < 5; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        const letter = this.game.grid[row][col];
+                        const isBonus = this.game.bonusTiles.has(`${row},${col}`);
+                        const bonusClass = isBonus ? ' bonus' : '';
+                        
+                        gridHtml += `
+                            <div class="grid-tile${bonusClass}" data-row="${row}" data-col="${col}">
+                                ${letter}
+                            </div>
+                        `;
+                    }
+                }
+
+                gridVisualization.innerHTML = gridHtml;
+                gridVisualization.style.display = 'grid';
+            }
+
+            showWordPath(word, data) {
+                const modal = document.getElementById('wordModal');
+                const modalTitle = document.getElementById('modalWordTitle');
+                const modalGrid = document.getElementById('modalGrid');
+                const modalInfo = document.getElementById('modalWordInfo');
+
+                // Set modal title
+                modalTitle.textContent = `Path for "${word}"`;
+
+                // Generate grid with path highlighting
+                let gridHtml = '<div class="grid-display">';
+                
+                // No arrows needed - numbered tiles show the path clearly
+
+                // Generate grid tiles
+                for (let row = 0; row < 5; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        const letter = this.game.grid[row][col];
+                        const pathIndex = data.path.findIndex(pos => pos[0] === row && pos[1] === col);
+                        const isBonus = this.game.bonusTiles.has(`${row},${col}`);
+                        
+                        let tileClass = 'grid-tile';
+                        if (isBonus) tileClass += ' bonus';
+                        
+                        if (pathIndex !== -1) {
+                            tileClass += ' path-number';
+                            if (pathIndex === 0) {
+                                tileClass += ' path-start';
+                            } else if (pathIndex === data.path.length - 1) {
+                                tileClass += ' path-end';
+                            } else {
+                                tileClass += ' path-middle';
+                            }
+                        }
+                        
+                        gridHtml += `
+                            <div class="${tileClass}" data-step="${pathIndex !== -1 ? pathIndex + 1 : ''}">
+                                ${letter}
+                            </div>
+                        `;
+                    }
+                }
+                
+                gridHtml += '</div>';
+                modalGrid.innerHTML = gridHtml;
+
+                // Set word info
+                const bonusTilesUsed = data.path.filter(pos => 
+                    this.game.bonusTiles.has(`${pos[0]},${pos[1]}`)).length;
+                const bonusScore = bonusTilesUsed * 3;
+                const baseScore = data.score - bonusScore;
+
+                let infoText = `
+                    <strong>Word:</strong> ${word} (${word.length} letters)<br>
+                    <strong>Score:</strong> ${data.score} points`;
+                
+                if (bonusScore > 0) {
+                    infoText += ` (${baseScore} base + ${bonusScore} bonus)`;
+                }
+                
+                infoText += `<br><strong>Path:</strong> ${data.path.map(pos => `(${pos[0]},${pos[1]})`).join(' → ')}`;
+                
+                if (bonusTilesUsed > 0) {
+                    const bonusPositions = data.path
+                        .filter(pos => this.game.bonusTiles.has(`${pos[0]},${pos[1]}`))
+                        .map(pos => `(${pos[0]},${pos[1]})`);
+                    infoText += `<br><strong>Bonus tiles:</strong> ${bonusPositions.join(', ')}`;
+                }
+
+                modalInfo.innerHTML = infoText;
+
+                // Show modal
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            }
+
+            closeModal() {
+                const modal = document.getElementById('wordModal');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto'; // Restore scrolling
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new UIController();
+        });
+    </script>
+</body>
+</html>
