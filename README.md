@@ -11,8 +11,20 @@ Originally designed to solve the Plato games 5x5 english games.
 2. **Enter your 5×5 grid** in the left panel (or use the pre-filled example)
 3. **Click Calculate** to find all words instantly
 4. **Click any word** in the results to see its path visualization
+5. **Easy navigation** when you click on a word to see its path, you can navigate to the next or previous word by clicking on the arrow buttons or pressing left or right keys. 
 
 That's it! No installation required.
+
+## 🧠 How I use it for Plato Wordbox
+
+1. Take a screenshot of the Plato Wordbox 5×5 grid.
+2. Upload the image to an LLM (e.g., ChatGPT, Gemini) and tell it:
+   - It's a 5×5 matrix of letters
+   - Extract the grid as lines of 5 space‑separated items
+   - Respond with the grid only (no extra text)
+3. Copy the extracted grid and paste it into the [my website/application ](https://umertariq1.github.io/WordBox-Solver-for-Plato/)
+4. Click Calculate.
+5. Make the words shown and use the left/right arrow buttons to move to previous/next word.
 
 ## 🎯 Features
 
