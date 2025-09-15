@@ -2,11 +2,11 @@
 
 A fast, interactive web application that finds all valid words in a 5×5 letter grid following adjacency rules.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Play%20Now-blue?style=for-the-badge)](https://umertariq1.github.io/wordbox/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Play%20Now-blue?style=for-the-badge)](https://umertariq1.github.io/WordBox-Solver-for-Plato/)
 
 ## 🚀 Quick Start
 
-1. **Visit [Live Demo](https://umertariq1.github.io/wordbox/)** or open `index.html` in any modern web browser
+1. **Visit [Live Demo](https://umertariq1.github.io/WordBox-Solver-for-Plato/)** or open `index.html` in any modern web browser
 2. **Enter your 5×5 grid** in the left panel (or use the pre-filled example)
 3. **Click Calculate** to find all words instantly
 4. **Click any word** in the results to see its path visualization
