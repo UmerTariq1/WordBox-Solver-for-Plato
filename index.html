@@ -149,12 +149,15 @@
             border: 1px solid #e2e8f0;
             border-radius: 6px;
             padding: 1rem;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .word-item:hover {
             background: #edf2f7;
             border-color: #cbd5e0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .word-header {
@@ -302,6 +305,12 @@
             font-size: 1.5rem;
             font-weight: 600;
             color: #2d3748;
+            flex: 1;
+        }
+
+        .modal-title .word-score {
+            font-size: 1.1rem;
+            padding: 6px 12px;
         }
 
         .close {
@@ -315,6 +324,28 @@
 
         .close:hover {
             color: #e53e3e;
+        }
+
+        .nav-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: #3182ce;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .path-grid {
@@ -368,17 +399,6 @@
         }
 
 
-        .word-item {
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .word-item:hover {
-            background: #edf2f7;
-            border-color: #cbd5e0;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
 
         .word-info {
             text-align: center;
@@ -459,6 +479,35 @@
                 left: -6px;
             }
         }
+
+        /* Screen reader only class */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus indicators for better accessibility */
+        .word-item:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .calculate-btn:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .grid-input:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
@@ -466,14 +515,17 @@
         🎮 WordBox Solver
     </header>
     
-    <div class="container">
-        <div class="panel left-panel">
+    <main class="container">
+        <section class="panel left-panel" aria-labelledby="input-section-title">
+            <h2 id="input-section-title" class="sr-only">Grid Input Section</h2>
             <div class="input-section">
                 
                 <label for="gridInput" class="input-label">Enter 5×5 Grid:</label>
                 <textarea 
                     id="gridInput" 
-                    class="grid-input" 
+                    class="grid-input"
+                    aria-describedby="grid-help"
+                    aria-label="Enter your 5x5 word grid with letters separated by spaces"
                     placeholder="Enter your grid on the left and get the highest scoring words on the right! Format: one row per line, letters separated by spaces. Use * for bonus tiles (V*), multi-letter tiles supported (Qu)."
                 >A T A N O
 C H L A O
@@ -481,15 +533,20 @@ E N H E V*
 R Qu N R E
 O Y H C H</textarea>
                 
-                <div class="example-text">
+                <div id="grid-help" class="example-text">
                     Format: One row per line, letters separated by spaces.<br>
                     Use * for bonus tiles (e.g., V*)<br>
                     Multi-letter tiles supported (e.g., Qu, Th)
                 </div>
                 
                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <button id="calculateBtn" class="calculate-btn">Calculate</button>
-                    <button id="clearBtn" class="calculate-btn" style="background: #718096;">Clear</button>
+                <button id="calculateBtn" class="calculate-btn" aria-describedby="grid-help">
+                        Calculate Words
+                    </button>
+                    <button id="clearBtn" class="calculate-btn" style="background: #718096;" 
+                            aria-label="Clear grid input and results">
+                        Clear
+                    </button>
                 </div>
                 
                 <!-- Grid Visualization -->
@@ -497,23 +554,28 @@ O Y H C H</textarea>
                     <!-- Grid tiles will be generated dynamically -->
                 </div>
             </div>
-        </div>
+        </section>
         
-        <div class="panel right-panel">
+        <section class="panel right-panel" aria-labelledby="results-section-title">
+            <h2 id="results-section-title" class="sr-only">Search Results Section</h2>
             <div id="resultsContainer">
                 <div class="results-header">
                     <h2 class="results-title">Found Words</h2>
                     <div class="results-stats">Enter a grid and click Calculate to find words</div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <!-- Modal for word path visualization -->
     <div id="wordModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modalWordTitle">Word Path</h2>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="prevWordBtn" class="nav-btn" title="Previous Word (←)">&larr;</button>
+                    <h2 class="modal-title" id="modalWordTitle">Word Path</h2>
+                    <button id="nextWordBtn" class="nav-btn" title="Next Word (→)">&rarr;</button>
+                </div>
                 <button class="close">&times;</button>
             </div>
             <div class="path-grid" id="modalGrid">
@@ -600,10 +662,75 @@ O Y H C H</textarea>
                 console.log('Loading comprehensive dictionary...');
                 const startTime = performance.now();
 
-                // Enhanced word list with focus on longer words and game-friendly terms
+                // Enhanced word list focusing on longer playable words
                 const words = [
-                    // Common game-friendly longer words (6+ letters)
-                    'ABSTRACT', 'ACADEMIC', 'ACHIEVE', 'ACQUIRE', 'ADVANCE', 'ADVENTURE', 'ANALYZE', 'APPROACH',
+                    // Advanced 8+ letter words
+                    'ABSTRACT', 'ACADEMIC', 'ACTIVATE', 'ADVANCED', 'ADVOCATE', 'AESTHETIC', 'AFFLUENT', 'ALLIANCE',
+'AMBITION', 'ANALYSIS', 'ANCESTOR', 'ANNOUNCE', 'APPETITE', 'APPROVAL', 'ARGUMENT', 'ARTISTIC',
+                    'ATTITUDE', 'AUDIENCE', 'AVIATION', 'BACHELOR', 'BACTERIA', 'BASEMENT', 'BEHAVIOR', 'BOUNDARY',
+                    'BREAKFAST', 'BUILDING', 'BUSINESS', 'CAMPAIGN', 'CAPACITY', 'CATEGORY', 'CELLULAR', 'CEREMONY',
+                    'CHAIRMAN', 'CHAMPION', 'CHEMICAL', 'CHILDREN', 'CIVILIAN', 'CLINICAL', 'CLOTHING', 'COLLAPSE',
+                    'COLONIAL', 'COLORFUL', 'COMMENCE', 'COMMERCE', 'COMPLAIN', 'COMPLETE', 'COMPOUND', 'COMPRISE',
+                    'COMPUTER', 'CONCLUDE', 'CONCRETE', 'CONFRONT', 'CONGRESS', 'CONSIDER', 'CONSTANT', 'CONSUMER',
+                    'CONTINUE', 'CONTRACT', 'CONVINCE', 'CORRIDOR', 'CREATURE', 'CRIMINAL', 'CRITICAL', 'CROSSING',
+                    'CULTURAL', 'CURRENCY', 'CUSTOMER', 'DARKNESS', 'DATABASE', 'DAUGHTER', 'DECISION', 'DECREASE',
+                    'DEDICATE', 'DEFENDER', 'DEFINITE', 'DELEGATE', 'DELIVERY', 'DEMOCRAT', 'DESCRIBE', 'DESIGNER',
+                    'DETAILED', 'DIABETES', 'DIALOGUE', 'DIAMETER', 'DIRECTLY', 'DIRECTOR', 'DISAGREE', 'DISASTER',
+                    'DISCLOSE', 'DISCOUNT', 'DISCOVER', 'DISORDER', 'DISPOSAL', 'DISTANCE', 'DISTINCT', 'DISTRICT',
+                    'DIVIDEND', 'DIVISION', 'DOCTRINE', 'DOCUMENT', 'DOMESTIC', 'DOMINANT', 'DOMINATE', 'DRAMATIC',
+                    'DRESSING', 'DROPPING', 'DURATION', 'DYNAMICS', 'EARNINGS', 'ECONOMIC', 'EDUCATED', 'ELECTION',
+                    'ELECTRIC', 'ELIGIBLE', 'EMERGING', 'EMPHASIS', 'EMPLOYEE', 'ENGINEER', 'ENORMOUS', 'ENTIRELY',
+                    'ENTRANCE', 'ENVELOPE', 'EQUALITY', 'EQUATION', 'ESTIMATE', 'EVALUATE', 'EVENTUAL', 'EVERYDAY',
+                    'EVERYONE', 'EVIDENCE', 'EXCHANGE', 'EXCITING', 'EXERCISE', 'EXPLICIT', 'EXPOSURE', 'EXTERNAL',
+                    'FACILITY', 'FAMILIAR', 'FANTASY', 'FAVORITE', 'FEATURED', 'FEEDBACK', 'FESTIVAL', 'FICTION',
+                    'FIFTEEN', 'FIGHTING', 'FINISHED', 'FIREWALL', 'FLOATING', 'FORECAST', 'FOREIGN', 'FOREVER',
+                    'FORMULA', 'FORTUNE', 'FORWARD', 'FOUNDING', 'FREEDOM', 'FRIENDLY', 'FRONTIER', 'FUNCTION',
+                    'FUNDING', 'FUNERAL', 'GALLERY', 'GATEWAY', 'GENERAL', 'GENETIC', 'GENUINE', 'GIGANTIC',
+                    'GOVERNOR', 'GRADUATE', 'GRAPHICS', 'GRATEFUL', 'GREATEST', 'GREETING', 'GROWING', 'GUIDANCE',
+                    'HANDLING', 'HARDWARE', 'HERITAGE', 'HISTORIC', 'HOLIDAY', 'HOMELESS', 'HOMEPAGE', 'HOSPITAL',
+                    'HUMANITY', 'IDENTIFY', 'IDENTITY', 'IDEOLOGY', 'IMPERIAL', 'INCIDENT', 'INCLUDED', 'INCREASE',
+                    'INDICATE', 'INDIRECT', 'INDUSTRY', 'INFINITE', 'INFORMAL', 'INFORMED', 'INHERENT', 'INITIAL',
+                    'INQUIRY', 'INSIGHT', 'INSTALL', 'INSTANCE', 'INSTANT', 'INSTEAD', 'INTEGRAL', 'INTENDED',
+                    'INTERACT', 'INTEREST', 'INTERIOR', 'INTERNAL', 'INTERVAL', 'INTIMATE', 'INTRANET', 'INVASION',
+                    'INVOLVED', 'ISOLATED', 'JUDGMENT', 'JUDICIAL', 'JUNCTION', 'KEYBOARD', 'LANDLORD', 'LANGUAGE',
+                    'LAUGHTER', 'LEARNING', 'LEVERAGE', 'LIABILITY', 'LICENSED', 'LIGHTING', 'LIKEWISE', 'LIMITING',
+                    'LITERARY', 'LOCATION', 'MAGAZINE', 'MAGNETIC', 'MAINTAIN', 'MAJORITY', 'MARGINAL', 'MARRIAGE',
+                    'MATERIAL', 'MATURITY', 'MAXIMIZE', 'MEANING', 'MEASURED', 'MEDICINE', 'MEDIEVAL', 'MEMORIAL',
+                    'MERCHANT', 'MIDNIGHT', 'MILITARY', 'MINIMIZE', 'MINISTER', 'MINISTRY', 'MINORITY', 'MOBILITY',
+                    'MODELING', 'MODERATE', 'MOMENTUM', 'MONETARY', 'MOREOVER', 'MORTGAGE', 'MOUNTAIN', 'MOUNTING',
+                    'MOVEMENT', 'MULTIPLE', 'NATIONAL', 'NEGATIVE', 'NEIGHBOR', 'NETWORK', 'NEUTRAL', 'NOTABLE',
+                    'NOTHING', 'NOWHERE', 'NUCLEAR', 'NURSING', 'OBVIOUS', 'OFFENSE', 'OFFICIAL', 'OFFSHORE',
+                    'OPERATOR', 'OPPONENT', 'OPPOSITE', 'OPTIMISM', 'OPTIONAL', 'ORDINARY', 'ORGANIZE', 'ORIGINAL',
+                    'OVERCOME', 'OVERHEAD', 'OVERSEAS', 'OVERVIEW', 'PAINTING', 'PARALLEL', 'PARENTAL', 'PATENTED',
+                    'PATIENCE', 'PEACEFUL', 'PERIODIC', 'PERSONAL', 'PERSUADE', 'PETITION', 'PHYSICAL', 'PIPELINE',
+                    'PLATFORM', 'PLEASANT', 'PLEASURE', 'POLITICS', 'PORTABLE', 'PORTRAIT', 'POSITION', 'POSITIVE',
+                    'POSSIBLE', 'POWERFUL', 'PRACTICE', 'PRECIOUS', 'PREGNANT', 'PRESENCE', 'PRESENT', 'PRESERVE',
+                    'PRESSING', 'PRESSURE', 'PREVIOUS', 'PRINCESS', 'PRINTING', 'PRIORITY', 'PROBABLE', 'PROBABLY',
+                    'PRODUCER', 'PROFOUND', 'PROGRESS', 'PROJECT', 'PROMISE', 'PROMOTE', 'PROSPECT', 'PROTECT',
+                    'PROTOCOL', 'PROVINCE', 'PUBLICLY', 'PURCHASE', 'PURSUIT', 'QUALIFY', 'QUALITY', 'QUARTER',
+                    'RADICAL', 'RAILWAY', 'READILY', 'READING', 'REALITY', 'REALIZE', 'RECEIPT', 'RECEIVE',
+                    'RECOVER', 'REFLECT', 'REGULAR', 'RELATED', 'RELEASE', 'REMAINS', 'REMOVAL', 'REMOVED',
+                    'REPLACE', 'REQUEST', 'REQUIRE', 'RESERVE', 'RESOLVE', 'RESPECT', 'RESPOND', 'RESTORE',
+                    'RETIRED', 'REVENUE', 'REVERSE', 'ROLLOUT', 'ROUTINE', 'RUNNING', 'SATISFY', 'SCIENCE',
+                    'SCRATCH', 'SCREENING', 'SEASONAL', 'SECONDARY', 'SECURITY', 'SEGMENT', 'SELECTIVE', 'SEPARATE',
+                    'SEQUENCE', 'SERGEANT', 'SHIPPING', 'SHORTAGE', 'SHOULDER', 'SIMPLIFY', 'SITUATED', 'SLIGHTLY',
+                    'SOFTWARE', 'SOLUTION', 'SOMEBODY', 'SOMEWHAT', 'SOUTHERN', 'SPEAKING', 'SPECIFIC', 'SPECTRUM',
+                    'SPORTING', 'STANDARD', 'STANDING', 'STANDOUT', 'STERLING', 'STRAIGHT', 'STRATEGY', 'STRENGTH',
+                    'STRIKING', 'STRUGGLE', 'STUNNING', 'SUBURBAN', 'SUITABLE', 'SUPERIOR', 'SUPPOSED', 'SURGICAL',
+                    'SURPRISE', 'SURVIVAL', 'SURVIVOR', 'SUSPECTED', 'SUSTAIN', 'SYMBOLIC', 'SYMPATHY', 'SYNDROME',
+                    'TACTICAL', 'TAILORED', 'TAKEOVER', 'TANGIBLE', 'TAXATION', 'TAXPAYER', 'TEACHING', 'TECHNICAL',
+                    'TECHNIQUE', 'TECHNOLOGY', 'TEENAGER', 'TEMPORAL', 'TERMINAL', 'TERRIBLE', 'THINKING', 'THIRTEEN',
+                    'THOROUGH', 'THOUSAND', 'TOGETHER', 'TOMORROW', 'TOUCHING', 'TRACKING', 'TRADING', 'TRAINING',
+                    'TRANSFER', 'TRANSIT', 'TRAUMA', 'TREASURE', 'TREATING', 'TREATY', 'TREMBLING', 'TRIANGLE',
+                    'TROPICAL', 'TROUBLE', 'TURNING', 'ULTIMATE', 'UMBRELLA', 'UNIVERSE', 'UNLAWFUL', 'UNLIKELY',
+                    'UNUSUAL', 'UPCOMING', 'UPGRADE', 'UPSCALE', 'UPSTAIRS', 'UPWARD', 'URGENCY', 'USABILITY',
+                    'VACATION', 'VALIDATE', 'VALUABLE', 'VARIABLE', 'VARIANCE', 'VARIATION', 'VARIETY', 'VARIOUS',
+                    'VARYING', 'VELOCITY', 'VENTURE', 'VERTICAL', 'VICTORY', 'VIEWING', 'VILLAGE', 'VIOLENT',
+                    'VIRTUAL', 'VISIBLE', 'VISITING', 'VISUAL', 'VOLATILE', 'VOLUME', 'VOLUNTARY', 'VULNERABLE',
+                    'WALKING', 'WARNING', 'WARRANTY', 'WATCHING', 'WEALTHY', 'WEATHER', 'WEBCAST', 'WEBSITE',
+                    'WEDDING', 'WEEKEND', 'WELCOME', 'WELFARE', 'WESTERN', 'WHEREAS', 'WHETHER', 'WILLING',
+                    'WINNING', 'WIRELESS', 'WITHDRAW', 'WITHIN', 'WITHOUT', 'WITNESS', 'WORKING', 'WRITING',
+                    'WRITTEN', 'YEARLING', 'YOUNGER', 'YOURSELF', 'YOUTH',
                     'ARRANGE', 'ARTISTIC', 'ASSEMBLE', 'BALANCE', 'BEAUTIFUL', 'BECOMING', 'BELIEVE', 'BENEATH',
                     'BENEFIT', 'BETWEEN', 'BEYOND', 'BLOSSOM', 'BREATHE', 'BRIGHT', 'BRILLIANT', 'CAPTURE',
                     'CAREFUL', 'CELEBRATE', 'CENTRAL', 'CENTURY', 'CERTAIN', 'CHAMBER', 'CHANNEL', 'CHAPTER',
@@ -823,7 +950,7 @@ O Y H C H</textarea>
                     'LANDER', 'LAUNDER', 'ORDINAL', 'READILY', 'QAEDA', 'ANDEAN', 'DERAIL', 'DIARIO', 'LAKOTA',
                     'LINKED', 'LINKER', 'LOADER', 'ORDEAL', 'RANDAL', 'RANKED', 'TAKEDA', 'TANKED', 'TANKER',
                     'YANKED', 'ADAIR', 'ADNAN', 'AIRED', 'ANDER', 'ANDRE'
-                ];
+                    ];
 
                 // Build trie from massive word list
                 for (const word of words) {
@@ -966,6 +1093,8 @@ O Y H C H</textarea>
         class UIController {
             constructor() {
                 this.game = new WordboxGame();
+                this.currentWordIndex = -1;
+                this.currentWords = [];
                 this.initializeEventListeners();
             }
 
@@ -989,6 +1118,9 @@ O Y H C H</textarea>
                             <div class="results-stats">Enter a grid and click Calculate to find words</div>
                         </div>
                     `;
+                    this.currentWords = [];
+                    this.currentWordIndex = -1;
+                    this.closeModal();
                 });
                 
                 // Allow Enter key to trigger calculation when focused on input
@@ -998,6 +1130,13 @@ O Y H C H</textarea>
                     }
                 });
 
+                // Modal navigation buttons
+                const prevWordBtn = document.getElementById('prevWordBtn');
+                const nextWordBtn = document.getElementById('nextWordBtn');
+
+                prevWordBtn.addEventListener('click', () => this.showPreviousWord());
+                nextWordBtn.addEventListener('click', () => this.showNextWord());
+
                 // Modal event listeners
                 closeBtn.addEventListener('click', () => this.closeModal());
                 modal.addEventListener('click', (e) => {
@@ -1006,10 +1145,16 @@ O Y H C H</textarea>
                     }
                 });
 
-                // Escape key to close modal
+                // Keyboard navigation
                 document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        this.closeModal();
+                    if (modal.style.display === 'block') {
+                        if (e.key === 'Escape') {
+                            this.closeModal();
+                        } else if (e.key === 'ArrowLeft') {
+                            this.showPreviousWord();
+                        } else if (e.key === 'ArrowRight') {
+                            this.showNextWord();
+                        }
                     }
                 });
             }
@@ -1022,12 +1167,22 @@ O Y H C H</textarea>
                 const gridText = gridInput.value.trim();
                 if (!gridText) {
                     this.showError('Please enter a grid');
+                    gridInput.focus();
+                    return;
+                }
+
+                // Validate grid format before processing
+                const lines = gridText.split('\n');
+                if (lines.length !== 5) {
+                    this.showError('Grid must have exactly 5 rows. Please check your input format.');
+                    gridInput.focus();
                     return;
                 }
 
                 // Disable button and show loading
                 calculateBtn.disabled = true;
                 calculateBtn.textContent = 'Calculating...';
+                calculateBtn.setAttribute('aria-busy', 'true');
                 this.showLoading();
 
                 try {
@@ -1049,13 +1204,30 @@ O Y H C H</textarea>
                     // Display grid visualization
                     this.displayGrid();
 
+                    // Announce results to screen readers
+                    const announcement = `Found ${foundWords.size} words in ${searchTime.toFixed(1)} milliseconds`;
+                    this.announceToScreenReader(announcement);
+
                 } catch (error) {
-                    this.showError(error.message);
+                    console.error('Calculation error:', error);
+                    this.showError(`Error processing grid: ${error.message}. Please check your input format.`);
+                    gridInput.focus();
                 } finally {
                     // Re-enable button
                     calculateBtn.disabled = false;
-                    calculateBtn.textContent = 'Calculate';
+                    calculateBtn.textContent = 'Calculate Words';
+                    calculateBtn.removeAttribute('aria-busy');
                 }
+            }
+
+            announceToScreenReader(message) {
+                const announcement = document.createElement('div');
+                announcement.setAttribute('aria-live', 'polite');
+                announcement.setAttribute('aria-atomic', 'true');
+                announcement.className = 'sr-only';
+                announcement.textContent = message;
+                document.body.appendChild(announcement);
+                setTimeout(() => document.body.removeChild(announcement), 1000);
             }
 
             showLoading() {
@@ -1084,15 +1256,17 @@ O Y H C H</textarea>
                 if (foundWords.size === 0) {
                     resultsContainer.innerHTML = `
                         <div class="results-header">
-                            <h2 class="results-title">No Words Found</h2>
+                            <h2 class="results-title">No Words Found. Try increasing the words list</h2>
                             <div class="results-stats">Try a different grid pattern</div>
                         </div>
                     `;
+                    this.currentWords = [];
+                    this.currentWordIndex = -1;
                     return;
                 }
 
                 // Sort words by score (descending) then alphabetically
-                const sortedWords = Array.from(foundWords.entries())
+                this.currentWords = Array.from(foundWords.entries())
                     .sort((a, b) => {
                         if (b[1].score !== a[1].score) {
                             return b[1].score - a[1].score;
@@ -1100,68 +1274,74 @@ O Y H C H</textarea>
                         return a[0].localeCompare(b[0]);
                     });
 
-                let html = `
-                    <div class="results-header">
-                        <h2 class="results-title">Found Words</h2>
-                        <div class="results-stats">
-                            Found ${sortedWords.length} valid words in ${searchTime.toFixed(1)}ms
-                        </div>
+                // Use DocumentFragment for better performance
+                const fragment = document.createDocumentFragment();
+                
+                // Create header
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'results-header';
+                headerDiv.innerHTML = `
+                    <h2 class="results-title">Found Words</h2>
+                    <div class="results-stats">
+                        Found ${this.currentWords.length} valid words in ${searchTime.toFixed(1)}ms
                     </div>
-                    <div class="word-list">
                 `;
+                fragment.appendChild(headerDiv);
+
+                // Create word list container
+                const wordListDiv = document.createElement('div');
+                wordListDiv.className = 'word-list';
+                wordListDiv.setAttribute('role', 'list');
+                wordListDiv.setAttribute('aria-label', `Found ${this.currentWords.length} words`);
 
                 // Display up to 50 words to avoid overwhelming the UI
-                const wordsToShow = sortedWords.slice(0, 50);
+                const wordsToShow = this.currentWords.slice(0, 50);
                 
                 for (const [word, data] of wordsToShow) {
-                    const bonusTilesUsed = data.path.filter(pos => 
-                        this.game.bonusTiles.has(`${pos[0]},${pos[1]}`)).length;
-                    const bonusScore = bonusTilesUsed * 3;
-                    const baseScore = data.score - bonusScore;
+                    // Calculate score components
+                    const { bonusTilesUsed, bonusScore, baseScore, scoreClass, bonusText, pathText, bonusTileHtml } = this.calculateWordScoreDetails(data);
                     
-                    const scoreClass = bonusScore > 0 ? 'bonus-score' : '';
-                    const bonusText = bonusScore > 0 ? ` (+${bonusScore} bonus)` : '';
-                    
-                    const pathText = data.path.map(pos => `(${pos[0]},${pos[1]})`).join(' → ');
-                    
-                    let bonusTileHtml = '';
-                    if (bonusTilesUsed > 0) {
-                        const bonusPositions = data.path
-                            .filter(pos => this.game.bonusTiles.has(`${pos[0]},${pos[1]}`))
-                            .map(pos => `(${pos[0]},${pos[1]})`);
-                        bonusTileHtml = `<div class="bonus-tiles">★ Bonus tiles: ${bonusPositions.join(', ')}</div>`;
-                    }
-                    
-                    html += `
-                        <div class="word-item">
-                            <div class="word-header">
-                                <span class="word-text">${word}</span>
-                                <span class="word-score ${scoreClass}">${data.score}${bonusText}</span>
-                            </div>
-                            <div class="word-path">${pathText}</div>
-                            ${bonusTileHtml}
+                    const wordItem = document.createElement('div');
+                    wordItem.className = 'word-item';
+                    wordItem.setAttribute('role', 'listitem');
+                    wordItem.setAttribute('tabindex', '0');
+                    wordItem.setAttribute('aria-label', `Word: ${word}, Score: ${data.score} points`);
+                    wordItem.innerHTML = `
+                        <div class="word-header">
+                            <span class="word-text">${word}</span>
+                            <span class="word-score ${scoreClass}">${data.score}${bonusText}</span>
                         </div>
+                        <div class="word-path">${pathText}</div>
+                        ${bonusTileHtml}
                     `;
+                    
+                    // Add event listeners
+                    const clickHandler = () => this.showWordPath(word, data);
+                    wordItem.addEventListener('click', clickHandler);
+                    wordItem.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            clickHandler();
+                        }
+                    });
+                    
+                    wordListDiv.appendChild(wordItem);
+                }
+                
+                fragment.appendChild(wordListDiv);
+
+                if (this.currentWords.length > 50) {
+                    const moreWordsDiv = document.createElement('div');
+                    moreWordsDiv.className = 'results-stats';
+                    moreWordsDiv.style.marginTop = '1rem';
+                    moreWordsDiv.style.textAlign = 'center';
+                    moreWordsDiv.textContent = `... and ${this.currentWords.length - 50} more words found!`;
+                    fragment.appendChild(moreWordsDiv);
                 }
 
-                html += '</div>';
-
-                if (sortedWords.length > 50) {
-                    html += `<div class="results-stats" style="margin-top: 1rem; text-align: center;">
-                        ... and ${sortedWords.length - 50} more words found!
-                    </div>`;
-                }
-
-                resultsContainer.innerHTML = html;
-
-                // Add click event listeners to word items (only for displayed words)
-                const wordItems = document.querySelectorAll('.word-item');
-                wordItems.forEach((item, index) => {
-                    if (index < wordsToShow.length) {
-                        const [word, data] = wordsToShow[index];
-                        item.addEventListener('click', () => this.showWordPath(word, data));
-                    }
-                });
+                // Clear and append in one operation
+                resultsContainer.innerHTML = '';
+                resultsContainer.appendChild(fragment);
             }
 
             displayGrid() {
@@ -1190,14 +1370,97 @@ O Y H C H</textarea>
                 gridVisualization.style.display = 'grid';
             }
 
+            showPreviousWord() {
+                if (this.currentWordIndex > 0) {
+                    this.currentWordIndex--;
+                    const [word, data] = this.currentWords[this.currentWordIndex];
+                    this.updateWordPath(word, data);
+                }
+                this.updateNavigationButtons();
+            }
+
+            showNextWord() {
+                if (this.currentWordIndex < this.currentWords.length - 1) {
+                    this.currentWordIndex++;
+                    const [word, data] = this.currentWords[this.currentWordIndex];
+                    this.updateWordPath(word, data);
+                }
+                this.updateNavigationButtons();
+            }
+
+            updateNavigationButtons() {
+                const prevBtn = document.getElementById('prevWordBtn');
+                const nextBtn = document.getElementById('nextWordBtn');
+                
+                // Update disabled state
+                prevBtn.disabled = this.currentWordIndex <= 0;
+                nextBtn.disabled = this.currentWordIndex >= this.currentWords.length - 1;
+                
+                // Update button styles
+                prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
+                nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
+                
+                // Update cursor style
+                prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
+                nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
+            }
+
             showWordPath(word, data) {
+                // Find the index of the current word
+                this.currentWordIndex = this.currentWords.findIndex(([w]) => w === word);
+                
                 const modal = document.getElementById('wordModal');
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                
+                this.updateWordPath(word, data);
+                this.updateNavigationButtons();
+            }
+
+            calculateWordScoreDetails(data) {
+                const bonusTilesUsed = data.path.filter(pos => 
+                    this.game.bonusTiles.has(`${pos[0]},${pos[1]}`)).length;
+                const bonusScore = bonusTilesUsed * 3;
+                const baseScore = data.score - bonusScore;
+                const scoreClass = bonusScore > 0 ? 'bonus-score' : '';
+                const bonusText = bonusScore > 0 ? ` (+${bonusScore} bonus)` : '';
+                const pathText = data.path.map(pos => `(${pos[0]},${pos[1]})`).join(' → ');
+                
+                let bonusTileHtml = '';
+                if (bonusTilesUsed > 0) {
+                    const bonusPositions = data.path
+                        .filter(pos => this.game.bonusTiles.has(`${pos[0]},${pos[1]}`))
+                        .map(pos => `(${pos[0]},${pos[1]})`);
+                    bonusTileHtml = `<div class="bonus-tiles">★ Bonus tiles: ${bonusPositions.join(', ')}</div>`;
+                }
+
+                return {
+                    bonusTilesUsed,
+                    bonusScore,
+                    baseScore,
+                    scoreClass,
+                    bonusText,
+                    pathText,
+                    bonusTileHtml,
+                    scoreText: bonusScore > 0 ? `${data.score} (+${bonusScore} bonus)` : data.score
+                };
+            }
+
+            updateWordPath(word, data) {
                 const modalTitle = document.getElementById('modalWordTitle');
                 const modalGrid = document.getElementById('modalGrid');
                 const modalInfo = document.getElementById('modalWordInfo');
 
-                // Set modal title
-                modalTitle.textContent = `Path for "${word}"`;
+                // Calculate score components
+                const { scoreClass, scoreText } = this.calculateWordScoreDetails(data);
+
+                // Set modal title with score
+                modalTitle.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span>Path for "${word}"</span>
+                        <span class="word-score ${scoreClass}" style="margin-left: auto;">${scoreText}</span>
+                    </div>
+                `;
 
                 // Generate grid with path highlighting
                 let gridHtml = '<div class="grid-display">';
