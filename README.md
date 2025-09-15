@@ -1,6 +1,7 @@
-# 🎮 Wordbox Solver
+# 🎮 Wordbox/Boggle Game Solver
 
 A fast, interactive web application that finds all valid words in a 5×5 letter grid following adjacency rules.
+Originally designed to solve the Plato games 5x5 english games.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Play%20Now-blue?style=for-the-badge)](https://umertariq1.github.io/WordBox-Solver-for-Plato/)
 
